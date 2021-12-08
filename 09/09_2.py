@@ -4,7 +4,8 @@ def checkData(line):
     groupsCounter = 0
     index = 0
     groupDepth = 0
-    garbage = False # if true, no garbage
+    garbage = False
+    garbageCounter = 0
     while index < len(line):
         ignoreNext = False
         if line[index] == "!":
@@ -23,13 +24,17 @@ def checkData(line):
             else:
                 if line[index] == ">":
                     garbage = False
+                else:
+                    garbageCounter += 1
         index += 1
+    return groupsCounter, garbageCounter
 
-    return groupsCounter
-
-
+#MAIN
 with open("data.txt") as file:
     data = file.read().splitlines()
 
 for line in data:
-    print(checkData(line))
+    task1, task2 = checkData(line)
+
+print("Task 1:", task1)
+print("Task 2:", task2)
