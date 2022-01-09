@@ -38,6 +38,3 @@ with open("data.txt", "r") as file:
     data = file.read()
 
 print("Task 1:",task1(data))
-
-#TODO: Task 2 not working - vraci spatne cislo, netusim proc
-print("Task 2:",task2(data))

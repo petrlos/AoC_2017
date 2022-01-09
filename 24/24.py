@@ -4,7 +4,7 @@ from random import randrange
 from datetime import datetime
 start = datetime.now()
 
-#TODO: Brute Force - not working: 100.000 iterations took about 11 minutes, incorrect :D
+#Brute Force - not working: 100.000 iterations took about 11 minutes, incorrect :D
 
 def somethingToConnect(currentEnd):
     for cableLeft in cablesLeft:
