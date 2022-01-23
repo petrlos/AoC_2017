@@ -1,27 +1,24 @@
 #Advent of Code 2017: Day 10
-
 from collections import deque
+def moveRight(data, currentPosition):
+    currentPosition = currentPosition % len(data)
+    return data[currentPosition:] + data[:currentPosition]
 
-def oneTurn(data, currentPosition, length, skipsize):
-    #posune list, aby currentPosition byla na 0
-    shiftedData = data[currentPosition:] + data[:currentPosition]
-    #otoci prvnich "length" pozic + pripoji zbytek retezce
-    shiftedRotatedData = list(reversed(shiftedData[:length])) + shiftedData[length:]
-    #posune nazpet
-    if currentPosition > 0:
-        newData = shiftedRotatedData[currentPosition-1:] + shiftedRotatedData[:currentPosition-1]
-    else:
-        newData = shiftedRotatedData
-    position = (currentPosition + skipsize + length) % len(data)
-    print(newData)
-    return position, newData
-
+def oneTurn(data, lengths, currentPosition, skipSize):
+    for length in lengths:
+        data = moveRight(data, currentPosition)
+        data = list(reversed(data[:length])) + data[length:]
+        data = moveRight(data, - currentPosition)
+        currentPosition += length + skipSize
+        skipSize += 1
+    return data
 
 #MAIN
 
-lengths = [3,4,1,5]
+lengths = [227,169,3,166,246,201,0,47,1,255,2,254,96,3,97,144]
 position = 0
-data = [0,1,2,3,4]
+data = list(range(256))
 
-for skipsize, length in enumerate(lengths):
-    position, data = oneTurn(data, position, length, skipsize)
+#Task1
+result = oneTurn(data, lengths, 0,0)[:2]
+print("Task 1:", result[0]*result[1])
