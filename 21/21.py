@@ -1,7 +1,9 @@
 #Advent of Code 2017 - Day 21
 import numpy
 from math import sqrt
-from pprint import pprint
+from copy import deepcopy
+from datetime import datetime
+timestart = datetime.now()
 
 def stringToNumpy(string):
     string = list(map(int, string.replace("/", "").replace("#", "1").replace(".", "0")))
@@ -40,9 +42,51 @@ def parseData(lines):
             ruleKeyNumpy = numpy.fliplr(ruleKeyNumpy)
     return rulesTwoByTwo, rulesThreeByThree
 
-with open("test.txt") as file:
+def slice(grid, midPoint, step):
+    row, column = midPoint
+    if step == 3:
+        cutOfRows = grid[[row, row + 1, row + 2], :]
+        cutOfColumns = cutOfRows[:, [column, column + 1, column + 2]]
+    else:
+        cutOfRows = grid[[row, row + 1], :]
+        cutOfColumns = cutOfRows[:, [column, column + 1]]
+    return cutOfColumns
+
+def performNSteps(steps, grid):
+    for _ in range(steps):
+        gridSize = grid.shape[0]
+        transferDict = rulesThreeByThree
+        gridStep = 3
+        newGridSize = gridSize // 3 * 4
+        if gridSize % 2 == 0:
+            transferDict = rulesTwoByTwo
+            gridStep = 2
+            newGridSize = gridSize // 2 * 3
+        row, col = 0, 0
+        newGrid = numpy.zeros((newGridSize, newGridSize))
+        for _ in range((gridSize // gridStep) ** 2):
+            cutOf = slice(grid, (row, col), gridStep)
+            toBeInserted = transferDict[decodeKey(cutOf)]
+            offSet = gridStep + 1
+            for x in range(gridStep + 1):
+                for y in range(gridStep + 1):
+                    newGrid[x + (row // gridStep) * offSet, y + (col // gridStep) * offSet] = toBeInserted[x, y]
+            col += gridStep
+            if col >= gridSize:
+                col = 0
+                row += gridStep
+        grid = deepcopy(newGrid)
+    return int(newGrid.sum())
+
+#MAIN
+with open("data.txt") as file:
     lines = file.read().splitlines()
-
-
 rulesTwoByTwo, rulesThreeByThree = parseData(lines)
-pprint(rulesTwoByTwo)
+
+grid = numpy.array([[0,1,0], [0,0,1], [1,1,1]])
+
+print("Task 1:",performNSteps(5, grid))
+print("Runtime Task1:", datetime.now() - timestart)
+timestart = datetime.now()
+print("Task 2:",performNSteps(18, grid))
+print("Runtime Task2:", datetime.now() - timestart)
