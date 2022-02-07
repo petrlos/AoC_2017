@@ -5,7 +5,7 @@ from copy import deepcopy
 from datetime import datetime
 timestart = datetime.now()
 
-def stringToNumpy(string):
+def stringToNumpy(string): #translates string to numpy array
     string = list(map(int, string.replace("/", "").replace("#", "1").replace(".", "0")))
     size = int(sqrt(len(string)))
     numpyArray = numpy.zeros((size, size))
@@ -15,7 +15,7 @@ def stringToNumpy(string):
             numpyArray[row, column] = string[index]
     return numpyArray
 
-def decodeKey(numpyArray):
+def decodeKey(numpyArray): #transfers numpy array to sum of (2^array index) - each array has unique key
     size = numpyArray.shape[0]
     reshaped = numpy.reshape(numpyArray, (1, size ** 2))
     result = 0
@@ -24,6 +24,8 @@ def decodeKey(numpyArray):
     return result
 
 def parseData(lines):
+    #each rule is saved to dictionary inkl. rotation + flip -> up to 8 times
+    #not necessary to search and rotate during iterations of main cycle
     rulesTwoByTwo = {}
     rulesThreeByThree = {}
     for line in lines:
@@ -31,10 +33,10 @@ def parseData(lines):
         ruleKeyNumpy = stringToNumpy(ruleKey)
         size = ruleKeyNumpy.shape[0]
         ruleValue = stringToNumpy(ruleValue)
-        for flip in range(2):
-            for rotate in range(4):
+        for flip in range(2): #flip
+            for rotate in range(4): #rotate 4 times
                 ruleKey = decodeKey(ruleKeyNumpy)
-                if size == 2:
+                if size == 2: #each key-size has separate dict
                     rulesTwoByTwo[ruleKey] = ruleValue
                 elif size == 3:
                     rulesThreeByThree[ruleKey] = ruleValue
@@ -42,8 +44,8 @@ def parseData(lines):
             ruleKeyNumpy = numpy.fliplr(ruleKeyNumpy)
     return rulesTwoByTwo, rulesThreeByThree
 
-def slice(grid, midPoint, step):
-    row, column = midPoint
+def slice(grid, topLeft, step): #cuts of grid 2x2 resp. 3x3
+    row, column = topLeft
     if step == 3:
         cutOfRows = grid[[row, row + 1, row + 2], :]
         cutOfColumns = cutOfRows[:, [column, column + 1, column + 2]]
@@ -55,27 +57,27 @@ def slice(grid, midPoint, step):
 def performNSteps(steps, grid):
     for _ in range(steps):
         gridSize = grid.shape[0]
-        transferDict = rulesThreeByThree
+        transferDict = rulesThreeByThree #default dictionary is size 3, only if it is not :) see line 61
         gridStep = 3
         newGridSize = gridSize // 3 * 4
-        if gridSize % 2 == 0:
+        if gridSize % 2 == 0: #if dividible by to - dictionary size is 2
             transferDict = rulesTwoByTwo
             gridStep = 2
             newGridSize = gridSize // 2 * 3
         row, col = 0, 0
-        newGrid = numpy.zeros((newGridSize, newGridSize))
+        newGrid = numpy.zeros((newGridSize, newGridSize)) #create new grid full of zeros
         for _ in range((gridSize // gridStep) ** 2):
-            cutOf = slice(grid, (row, col), gridStep)
-            toBeInserted = transferDict[decodeKey(cutOf)]
+            cutOf = slice(grid, (row, col), gridStep) #slice old grid
+            toBeInserted = transferDict[decodeKey(cutOf)] #get new key
             offSet = gridStep + 1
-            for x in range(gridStep + 1):
+            for x in range(gridStep + 1): #copy to new grid
                 for y in range(gridStep + 1):
                     newGrid[x + (row // gridStep) * offSet, y + (col // gridStep) * offSet] = toBeInserted[x, y]
-            col += gridStep
-            if col >= gridSize:
+            col += gridStep #move to next column
+            if col >= gridSize: #if column out, move to next row + first column
                 col = 0
                 row += gridStep
-        grid = deepcopy(newGrid)
+        grid = deepcopy(newGrid) #copy grid
     return int(newGrid.sum())
 
 #MAIN
@@ -83,6 +85,7 @@ with open("data.txt") as file:
     lines = file.read().splitlines()
 rulesTwoByTwo, rulesThreeByThree = parseData(lines)
 
+#start grid
 grid = numpy.array([[0,1,0], [0,0,1], [1,1,1]])
 
 print("Task 1:",performNSteps(5, grid))
