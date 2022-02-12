@@ -1,5 +1,5 @@
 #Advent of Code 2017: Day 7
-from pprint import pprint
+from collections import Counter
 
 def parseData(lines):
     tree = dict()
@@ -32,10 +32,59 @@ def findTopParent(lines):
             parents.append(line.split(" ")[0])
     return list(set(parents) - set(kids))[0]
 
+def kidsCompleted(parent):
+    kids = tree[parent]["kids"]
+    for kid in kids:
+        if not tree[kid]["done"]:
+            return False
+    return True
+
+def countTree(tree):
+    done = False
+    while not done:
+        done = True
+        for parent in tree.keys():
+            if not tree[parent]["done"]:
+                if kidsCompleted(parent):
+                    kids = tree[parent]["kids"]
+                    for kid in kids:
+                        tree[parent]["value"] += tree[kid]["value"]
+                    tree[parent]["done"] = True
+                done = False
+    return tree
+
+def findDefectParent(startKey):
+    defektKey = startKey
+    defectKeyFound = False
+    result = 0
+    while not defectKeyFound:
+        values = [tree[parent]["value"] for parent in tree[defektKey]["kids"]]
+        if len(set(values)) > 1:
+            defectValue = Counter(values).most_common()[-1][0]
+            difference = Counter(values).most_common()[-1][0] - Counter(values).most_common()[0][0]
+            for parent in tree[defektKey]["kids"]:
+                if tree[parent]["value"] == defectValue:
+                    defektKey = parent
+        else:
+            result = tree[defektKey]["value"] - difference
+            for kid in tree[defektKey]["kids"]:
+                result -= tree[kid]["value"]
+            defectKeyFound = True
+
+
+    return defektKey, result
+
 #MAIN
-with open("test.txt") as file:
+with open("data.txt") as file:
     lines = file.read().splitlines()
 
 tree = parseData(lines)
-startKey = findTopParent(lines)
 
+#Task1:
+startKey = findTopParent(lines)
+print("Task1:", startKey)
+tree = countTree(tree)
+
+#Task2:
+defectKey, defectParentValue = findDefectParent(startKey)
+print("Task2: defect key {0} should have value: {1}".format(defectKey, defectParentValue))
