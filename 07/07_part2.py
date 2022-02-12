@@ -44,8 +44,7 @@ for line in lines:
 while tree[startKey]["counted"] == False:
     sumWithRecursion(startKey)
 
-#pp(tree)
-# TODO: vyvazeny strom, nepocita spravne
+#TODO: not working - see 07_part2_02.py
 
 print(startKey, tree[startKey])
 
