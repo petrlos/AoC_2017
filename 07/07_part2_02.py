@@ -5,22 +5,22 @@ def parseData(lines):
     tree = dict()
     for line in lines:
         helpDict = dict()
-        if " -> " in line:
+        if " -> " in line: #node with kids
             front, back = line.split(" -> ")
             parent, value = front.split(" ")
             kids = back.split(", ")
             done = False
-        else:
+        else: #node without kids
             parent, value = line.split(" ")
             kids = None
-            done = True
+            done = True #no kids = no counting needed
         helpDict["value"] = int(value[1:-1])
         helpDict["kids"] = kids
         helpDict["done"] = done
         tree[parent] = helpDict
     return tree
 
-def findTopParent(lines):
+def findTopParent(lines): #find parent, which does not appear as a kid anywhere - set difference
     kids = []
     parents = []
     for line in lines:
@@ -45,33 +45,31 @@ def countTree(tree):
         done = True
         for parent in tree.keys():
             if not tree[parent]["done"]:
-                if kidsCompleted(parent):
+                if kidsCompleted(parent): #if all kids completed
                     kids = tree[parent]["kids"]
                     for kid in kids:
-                        tree[parent]["value"] += tree[kid]["value"]
+                        tree[parent]["value"] += tree[kid]["value"] #add up value of all kids
                     tree[parent]["done"] = True
-                done = False
+                done = False #make sure all parents are counted
     return tree
 
 def findDefectParent(startKey):
     defektKey = startKey
-    defectKeyFound = False
-    result = 0
+    defectKeyFound = False #repeat until result found
+    result, difference = 0, 0
     while not defectKeyFound:
-        values = [tree[parent]["value"] for parent in tree[defektKey]["kids"]]
-        if len(set(values)) > 1:
-            defectValue = Counter(values).most_common()[-1][0]
+        values = [tree[parent]["value"] for parent in tree[defektKey]["kids"]] #list of values of current parent
+        if len(set(values)) > 1: #two different
+            defectValue = Counter(values).most_common()[-1][0] #the least common should be corrected
             difference = Counter(values).most_common()[-1][0] - Counter(values).most_common()[0][0]
-            for parent in tree[defektKey]["kids"]:
+            for parent in tree[defektKey]["kids"]: #find key with defect value and repeat
                 if tree[parent]["value"] == defectValue:
                     defektKey = parent
         else:
-            result = tree[defektKey]["value"] - difference
+            result = tree[defektKey]["value"] - difference #subtract difference
             for kid in tree[defektKey]["kids"]:
-                result -= tree[kid]["value"]
+                result -= tree[kid]["value"] #subract kids values
             defectKeyFound = True
-
-
     return defektKey, result
 
 #MAIN
