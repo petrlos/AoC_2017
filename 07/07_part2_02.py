@@ -1,10 +1,23 @@
 #Advent of Code 2017: Day 7
-import re
+from pprint import pprint
 
 def parseData(lines):
-    tree = []
+    tree = dict()
     for line in lines:
-        ...
+        helpDict = dict()
+        if " -> " in line:
+            front, back = line.split(" -> ")
+            parent, value = front.split(" ")
+            kids = back.split(", ")
+            done = False
+        else:
+            parent, value = line.split(" ")
+            kids = None
+            done = True
+        helpDict["value"] = int(value[1:-1])
+        helpDict["kids"] = kids
+        helpDict["done"] = done
+        tree[parent] = helpDict
     return tree
 
 def findTopParent(lines):
@@ -25,4 +38,4 @@ with open("test.txt") as file:
 
 tree = parseData(lines)
 startKey = findTopParent(lines)
-print(startKey)
+
