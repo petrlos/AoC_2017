@@ -6,7 +6,7 @@ def decodeLine(parameter):
         result = int(parameter)
     return result
 
-with open("data.txt") as file:
+with open("test.txt") as file:
     lines = file.read().splitlines()
 
 registers = {}; sound = 0; currentLine = 0 ; rcv = 0
@@ -35,5 +35,3 @@ while rcv == 0:
     currentLine += 1
 
 print("Task 1:", rcv)
-
-#TODO: Task2: vice zesilovacu pracujicich zaroven a predavajich si informace
