@@ -1,5 +1,4 @@
 #Advent of Code 2017 - Day 23
-import re
 
 def decodeLine(parameter):
     if parameter.isalpha():
@@ -12,7 +11,7 @@ def decodeLine(parameter):
 with open("data.txt", "r") as file:
     instructions = file.read().splitlines()
 
-registers = {"a":1, "h":0}
+registers = {"a":0, "h":0}
 
 currentLine = 0
 mulCounter = 0
@@ -33,11 +32,7 @@ while True:
         where = decodeLine(where)
         if where != 0:
             currentLine += what -1
-    print(registers["h"])
     currentLine += 1
     if currentLine >= len(instructions):
         break
-print(mulCounter)
-print(registers)
-
-#TODO: Optimalizace programu
+print("Task 1:", mulCounter)
