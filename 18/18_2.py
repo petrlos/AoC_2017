@@ -1,63 +1,83 @@
-#Advent of Code 2017: Day 18
-from collections import defaultdict, deque
+# Advent of Code 2017: Day 18
+from collections import deque, defaultdict
 
-class Reciever_programm():
-
-    def __init__(self, programm_id):
-        self.sound = 0
-        self.id = programm_id
-        self.counter = 0
-        self.currentline = 0
+class Program:
+    def __init__(self,p):
+        self.id = p
+        self.registers = defaultdict(int, {"p":p})
         self.queue = deque()
+        self.counter = 0
+        self.pointer = 0
         self.deadlock = False
-        self.registers = defaultdict(int)
-        self.recover = 0
 
-    def __str__(self):
-        return "ID:{0}: {1}, {2}".format(self.id, self.registers, self.sound)
+    def __repr__(self):
+        return f"Program {self.id}: {self.registers}, {self.queue}, counter {self.counter}, Pointer{self.pointer}"
 
-def perform_instruction(lines, current_reciever):
-
-    def val(v):
+    def get_value(self, x): #if number return number else value in register
         try:
-            return int(v)
+            return int(x)
         except ValueError:
-            return recievers[current_reciever].registers[v]
+            return self.registers[x]
 
-    inst = lines[recievers[current_reciever].currentline]
-    inst = inst.split(" ")
+    def execute_line(self, line):
+        send = None
+        line = line.split(" ")
+        inst = line[0]
+        val1 = line[1]
+        val2 = line[2] if len(line) > 2 else None
+        if inst == "snd":
+            send = self.get_value(val1)
+            self.counter += 1
+            self.pointer += 1
+        elif inst == "rcv":
+            if len(self.queue) > 0:
+                value = self.queue.popleft()
+                self.registers[val1] = value
+                self.deadlock = False
+                self.pointer += 1
+            else:
+                self.deadlock = True
+        elif inst == "set":
+            self.pointer += 1
+            self.registers[val1] = self.get_value(val2)
+        elif inst == "add":
+            self.pointer += 1
+            self.registers[val1] += self.get_value(val2)
+        elif inst == "mul":
+            self.pointer += 1
+            self.registers[val1] *= self.get_value(val2)
+        elif inst == "mod":
+            self.pointer += 1
+            self.registers[val1] %= self.get_value(val2)
+        elif inst == "jgz":
+            if self.get_value(val1) > 0:
+                self.pointer += self.get_value(val2)
+            else:
+                self.pointer += 1
+        return send
 
-    if inst[0] == "snd":
-        recievers[current_reciever].sound = val(inst[1])
-    elif inst[0] == "set":
-        recievers[current_reciever].registers[inst[1]] = val(inst[2])
-    elif inst[0] == "add":
-        recievers[current_reciever].registers[inst[1]] += val(inst[2])
-    elif inst[0] == "mul":
-        recievers[current_reciever].registers[inst[1]] *= val(inst[2])
-    elif inst[0] == "mod":
-        recievers[current_reciever].registers[inst[1]] %= val(inst[2])
-    elif inst[0] == "rcv":
-        recievers[current_reciever].recover = recievers[current_reciever].sound
-    elif inst[0] == "jgz":
-        if recievers[current_reciever].registers[inst[1]] > 0:
-            recievers[current_reciever].currentline += val(inst[2]) - 1
-    recievers[current_reciever].currentline += 1
-    if recievers[current_reciever].recover != 0:
-        recievers[current_reciever].deadlock = True
+def is_deadlock(programs): #all queue must be empty, both program in deadlock to stop
+    for program in programs:
+        if len(program.queue) > 0:
+            return False
+        if program.deadlock == False:
+            return False
+    return True
 
 #MAIN
-
 with open("data.txt") as file:
     lines = file.read().splitlines()
 
-recievers = []
-for i in range(2):
-    recievers.append(Reciever_programm(i))
+programs = [Program(0), Program(1)]
+current = 0
 
-current_reciever = 0
+while not is_deadlock(programs):
+    program = programs[current]
+    send = program.execute_line(lines[program.pointer])
+    if send is not None:
+        programs[1-current].queue.append(send)
+        program.deadlock = False
+    if program.deadlock: #run as long as can
+        current = 1 - current
 
-while not recievers[0].deadlock:
-    perform_instruction(lines, current_reciever)
-
-print("Task 1:",recievers[0].sound)
+print("Part 2:", programs[1].counter)
